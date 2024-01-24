@@ -1,0 +1,508 @@
+
+<button
+class="btn btn-sm btn-danger mb-1 float-right"
+(click)="onLogOut()"
+>
+    Log Out
+</button>
+<div [ngSwitch]="switchValue">
+    <span *ngSwitchCase="'index'">
+        <h1>Employee List</h1>
+        <div class="alert alert-warning mt-2 mb-2 d-flex justify-content-between" *ngIf="statusOnClick === 'edit'">
+            <div>Succeed to edit this employee</div>
+            <a href="javascript:;" (click)="onClickCloseButton()" style="text-decoration: none; color: brown;">x</a>
+        </div>
+    
+        <div class="alert alert-danger mt-2 mb-2 d-flex justify-content-between" *ngIf="statusOnClick === 'delete'">
+            <div>Succeed to delete this employee</div>
+            <a href="javascript:;" (click)="onClickCloseButton()" style="text-decoration: none; color: brown;">x</a>
+        </div>
+        <div class="pagination">
+            <span>
+                <input 
+                id="searchText"
+                value="searchText"
+                placeholder="Search By Name"
+                [(ngModel)]="searchText"
+                type="text">
+                <button
+                class="btn btn-sm btn-primary mb-1 float-right"
+                (click)="findName()"
+                >
+                    Search
+                </button>
+            </span>
+            <span>
+                <span>Show</span>
+                <select [(ngModel)]="selectedLength" (change)="sortLength()">
+                    <option value="10" >default</option>
+                    <option *ngFor="let gl of lenghtList" [value]="gl.id">
+                      {{ gl.id }}
+                    </option>
+                  </select>
+            </span>
+
+        </div>
+        <button
+        class="btn btn-sm btn-primary mb-1 float-right"
+        (click)="switchValue='insert'"
+        >
+            Insert New Employee
+        </button>
+        <table  class="table table-bordered" >
+            <thead>
+                <tr>
+                  <th scope="col" (click)="sortNumber()" style="cursor: pointer;">No</th>
+                  <th scope="col" (click)="sortUsername()" style="cursor: pointer;">
+                    Username
+                  </th>
+                  <th class="pe-auto pointer-cs" scope="col" (click)="sortFullName()" style="cursor: pointer;">
+                    Full Name
+                  </th>
+                  <th scope="col" (click)="sortBirthDate()" style="cursor: pointer;">
+                    Birth Date
+                  </th>
+                  <th scope="col" (click)="sortBasicSalary()" style="cursor: pointer;">
+                    Basic Salary
+                  </th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+            <tbody *ngFor="let user of userList; let i=index">
+                <tr>
+                    <td scope="row">{{i+1}}</td>
+                    <td>{{user?.username}}</td>
+                    <td>{{user?.firstName+' '+user?.lastName}}</td>
+                    <td>{{user?.birthDate | date: 'dd MMMM yyyy'}}</td>
+                    <td>{{user?.basicSalary | currency: 'Rp'}}</td>
+                    <td>
+                        <button
+                            class="btn btn-sm btn-primary mb-1 float-right"
+                            (click)="getDetail(user.id)"
+                        >
+                            Detail
+                        </button>
+                        <button
+                        class="btn btn-sm btn-warning mb-1 float-right"
+                        (click)="onClickEditButton()"
+                        >
+                            Edit
+                        </button>
+                        <button
+                        class="btn btn-sm btn-danger mb-1 float-right"
+                        (click)="onClickDeleteButton()"
+                        >
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+              <tfoot>
+                <td colspan="6">
+                  <div class="pagination">
+                    <div>Page {{ value + 1 }} of {{ page }}</div>
+                    <div>
+                      <button *ngIf="value > 0" class="btn btn-sm btn-outline-info" (click)="updatePage(value - 1)"><</button>
+              
+                      <span *ngIf="value > 2">
+                        <button class="btn btn-sm btn-outline-info" (click)="updatePage(0)">1</button>
+                        <span *ngIf="value > 3">...</span>
+                      </span>
+              
+                      <span *ngFor="let pg of pages; let i=index"  >
+                        <button
+                          class="btn btn-sm"
+                          [class.btn-info]="value === i"
+                          [class.btn-outline-info]="value !== i"
+                          (click)="updatePage(i)"
+                          *ngIf="i>=value-2 && i<=value +2"
+                        >
+                          {{ i + 1 }}
+                        </button>
+                      </span>
+              
+                      <span *ngIf="value < page - 3">
+                        <span *ngIf="value < page - 4">...</span>
+                        <button class="btn btn-sm btn-outline-info" (click)="updatePage(page - 1)" *ngIf="value < page - 2">{{ page }}</button>
+                      </span>
+              
+                      <button *ngIf="page != value + 1" class="btn btn-sm btn-outline-info" (click)="updatePage(value + 1)">></button>
+                    </div>
+                  </div>
+                </td>
+              </tfoot>
+              
+        </table>
+    </span>
+    <div *ngSwitchCase="'insert'">
+        <h1>Employee Form</h1>
+        <form [formGroup]="detailForm">
+            <div class="form-group mb-3">
+                <label for="username">Username</label>
+                <input 
+                    class="form-control form-control lg"
+                    type="text" 
+                    id="username" 
+                    placeholder="Enter your username"
+                    formControlName="username"
+                >
+
+                <div
+                    class="alert alert-danger mt-1"
+                    *ngIf="
+                        detailForm.controls['username'].touched &&
+                        !detailForm.controls['username'].valid
+                    "
+                >
+                    <div *ngIf="detailForm.controls['username'].errors?.['required']">
+                        username is required.
+                    </div>
+                    <div *ngIf="detailForm.controls['username'].errors?.['minlength']">
+                        username is minimum
+                        {{ detailForm.controls['username'].errors?.['minlength']['requiredLength'] }}
+                    </div>
+                    <div *ngIf="detailForm.controls['username'].hasError('uniqUsername')">
+                        {{ detailForm.controls['username'].getError('uniqUsername').message }}
+                      </div>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="firstName">firstName</label>
+                <input 
+                    class="form-control form-control lg"
+                    type="text" 
+                    id="firstName"
+                    placeholder="Enter your firstName"
+                    formControlName="firstName"
+                >
+                <div
+                    class="alert alert-danger mt-1"
+                    *ngIf="
+                        detailForm.controls['firstName'].touched &&
+                        detailForm.controls['firstName'].invalid
+                    "
+                >
+                    <div *ngIf="detailForm.controls['firstName'].errors?.['required']">
+                        firstName is required.
+                    </div>
+                    <div *ngIf="detailForm.controls['firstName'].errors?.['minlength']">
+                        firstName is minimum
+                        {{ detailForm.controls['firstName'].errors?.['minlength']['requiredLength'] }}
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="lastName">lastName</label>
+                <input 
+                    class="form-control form-control lg"
+                    type="text" 
+                    id="lastName"
+                    placeholder="Enter your lastName"
+                    formControlName="lastName"
+                >
+                <div
+                    class="alert alert-danger mt-1"
+                    *ngIf="
+                        detailForm.controls['lastName'].touched &&
+                        detailForm.controls['lastName'].invalid
+                    "
+                >
+                    <div *ngIf="detailForm.controls['lastName'].errors?.['required']">
+                        lastName is required.
+                    </div>
+                    <div *ngIf="detailForm.controls['lastName'].errors?.['minlength']">
+                        lastName is minimum
+                        {{ detailForm.controls['lastName'].errors?.['minlength']['requiredLength'] }}
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="email">email</label>
+                <input 
+                    class="form-control form-control lg"
+                    type="email" 
+                    id="email"
+                    placeholder="Enter your email"
+                    formControlName="email"
+                >
+                <div
+                    class="alert alert-danger mt-1"
+                    *ngIf="
+                        detailForm.controls['email'].touched &&
+                        detailForm.controls['email'].invalid
+                    "
+                >
+                    <div *ngIf="detailForm.controls['email'].errors?.['required']">
+                        email is required.
+                    </div>
+                    <div *ngIf="detailForm.controls['email'].errors?.['email']">
+                        Email is invalid.
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="birthDate">birthDate</label>
+                <input 
+                    class="form-control form-control lg"
+                    type="date" 
+                    id="birthDate"
+                    placeholder="Enter your birthDate"
+                    formControlName="birthDate"
+                >
+                <div
+                    class="alert alert-danger mt-1"
+                    *ngIf="
+                        detailForm.controls['birthDate'].touched &&
+                        detailForm.controls['birthDate'].invalid
+                    "
+                >
+                    <div *ngIf="detailForm.controls['birthDate'].hasError('futureDate')">
+                        {{ detailForm.controls['birthDate'].getError('futureDate').message }}
+                      </div>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="basicSalary">basicSalary</label>
+                <input 
+                    class="form-control form-control lg"
+                    type="number" 
+                    id="basicSalary"
+                    placeholder="Enter your basicSalary"
+                    formControlName="basicSalary"
+                >
+                <div
+                    class="alert alert-danger mt-1"
+                    *ngIf="
+                        detailForm.controls['basicSalary'].touched &&
+                        detailForm.controls['basicSalary'].invalid
+                    "
+                >
+                    <div *ngIf="detailForm.controls['basicSalary'].errors?.['required']">
+                        basicSalary is required.
+                    </div>
+                    <div *ngIf="detailForm.controls['basicSalary'].hasError('invalidSalary')">
+                        {{ detailForm.controls['basicSalary'].getError('invalidSalary').message }}
+                      </div>
+                </div>
+            </div>
+            
+            <div class="form-group mb-3">
+                <label for="group">group</label>
+                <select
+                 class="form-select"                     
+                id="group"
+                formControlName="group">
+                    <option value=""></option>
+                    <option value="" 
+                        *ngFor="let gl of groupList" 
+                        [value]="gl.id"
+                    >
+                        {{ gl.name }}
+                    </option>
+                </select>
+                <div
+                    class="alert alert-danger mt-1"
+                    *ngIf="
+                        detailForm.controls['group'].touched &&
+                        detailForm.controls['group'].invalid
+                    "
+                >
+                    <div *ngIf="detailForm.controls['group'].errors?.['required']">
+                        group is required.
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="status">status</label>
+                <select
+                 class="form-select"                     
+                id="status"
+                formControlName="status">
+                    <option value=""></option>
+                    <option value="" 
+                        *ngFor="let sl of statusList" 
+                        [value]="sl.id"
+                    >
+                        {{ sl.status }}
+                    </option>
+                </select>
+                <div
+                    class="alert alert-danger mt-1"
+                    *ngIf="
+                        detailForm.controls['status'].touched &&
+                        detailForm.controls['status'].invalid
+                    "
+                >
+                    <div *ngIf="detailForm.controls['status'].errors?.['required']">
+                        status is required.
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="description">description</label>
+                <textarea 
+                class="form-control"
+                cols="30" 
+                rows="10" 
+                id="description"
+                placeholder="Enter your description"
+                formControlName="description"
+                >
+                </textarea>
+                <div
+                    class="alert alert-danger mt-1"
+                    *ngIf="
+                        detailForm.controls['description'].touched &&
+                        detailForm.controls['description'].invalid
+                    "
+                >
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="id">id</label>
+                <input 
+                    class="form-control form-control lg"
+                    type="text" 
+                    id="id"
+                    placeholder="Enter your id"
+                    formControlName="id"
+                >
+                <div
+                    class="alert alert-danger mt-1"
+                    *ngIf="
+                        detailForm.controls['id'].touched &&
+                        detailForm.controls['id'].invalid
+                    "
+                >
+                    <div *ngIf="detailForm.controls['id'].errors?.['required']">
+                        id is required.
+                    </div>
+                </div>
+            </div>
+            <div class="button-form">
+                
+            <button
+            class="btn btn-sm btn-primary mb-1 float-right"
+            (click)="switchValue = 'index'"
+            >
+                Back
+            </button>
+            <button
+            class="btn btn-sm btn-primary mb-1 float-right"
+            (click)="onSubmit()"
+            >
+                Submit
+            </button>
+            </div>
+        </form>
+    </div>    
+    <div *ngSwitchCase="'detail'">
+        <h1>Employee Detail</h1>
+        <div class="col-lg-8 col-md-7" *ngFor="let em of employee;" >
+            <div class="team-single-text padding-50px-left sm-no-padding-left">
+                <div class="contact-info-section margin-40px-tb">
+                    <ul class="list-style9 no-margin">
+                        <li>
+
+                            <div class="row">
+                                <div class="col-md-5 col-5">
+                                    <i class="fas fa-graduation-cap text-orange"></i>
+                                    <strong class="margin-10px-left text-orange">Username:</strong>
+                                </div>
+                                <div class="col-md-7 col-7">
+                                    <p>{{em?.username}}</p>
+                                </div>
+                            </div>
+
+                        </li>
+                        <li>
+
+                            <div class="row">
+                                <div class="col-md-5 col-5">
+                                    <i class="fas fa-graduation-cap text-orange"></i>
+                                    <strong class="margin-10px-left text-orange">Full Name:</strong>
+                                </div>
+                                <div class="col-md-7 col-7">
+                                    <p>{{em?.firstName+' '+em?.lastName}}</p>
+                                </div>
+                            </div>
+
+                        </li>
+                        <li>
+
+                            <div class="row">
+                                <div class="col-md-5 col-5">
+                                    <i class="far fa-gem text-yellow"></i>
+                                    <strong class="margin-10px-left text-yellow">Birth Date:</strong>
+                                </div>
+                                <div class="col-md-7 col-7">
+                                    <p>{{em?.birthDate| date: 'dd MMMM yyyy'}}</p>
+                                </div>
+                            </div>
+
+                        </li>
+                        <li>
+
+                            <div class="row">
+                                <div class="col-md-5 col-5">
+                                    <i class="far fa-file text-lightred"></i>
+                                    <strong class="margin-10px-left text-lightred">Basic Salary:</strong>
+                                </div>
+                                <div class="col-md-7 col-7">
+                                    <p>{{em?.basicSalary| currency: 'Rp'}}</p>
+                                </div>
+                            </div>
+
+                        </li>
+                        <li>
+
+                            <div class="row">
+                                <div class="col-md-5 col-5">
+                                    <i class="fas fa-map-marker-alt text-green"></i>
+                                    <strong class="margin-10px-left text-green">Group:</strong>
+                                </div>
+                                <div class="col-md-7 col-7">
+                                    <p>{{em?.group}}</p>
+                                </div>
+                            </div>
+
+                        </li>
+                        <li>
+
+                            <div class="row">
+                                <div class="col-md-5 col-5">
+                                    <i class="fas fa-mobile-alt text-purple"></i>
+                                    <strong class="margin-10px-left xs-margin-four-left text-purple">Description:</strong>
+                                </div>
+                                <div class="col-md-7 col-7">
+                                    <p>{{em?.description}}</p>
+                                </div>
+                            </div>
+
+                        </li>
+                        <li>
+                            <div class="row">
+                                <div class="col-md-5 col-5">
+                                    <i class="fas fa-envelope text-pink"></i>
+                                    <strong class="margin-10px-left xs-margin-four-left text-pink">Email:</strong>
+                                </div>
+                                <div class="col-md-7 col-7">
+                                    <p>{{em?.email}}</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-form">
+            <button
+        class="btn btn-sm btn-primary mb-1 float-right"
+        (click)="switchValue = 'index'"
+        >
+            Oke
+        </button>
+        </div>
+    </div>
+</div>
